@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expiry Date Calculator | Workflow</title>
+    <link rel="icon" href="https://i.ibb.co/W48rv8hd/icon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #98cc4e;
+            --secondary: #fb0088;
+            --light: #FFFFFF;
+            --dark: #292929;
+            --bg: #F7F7F7;
+            --border: #e0e0e0;
+            --pink: #ffd6e7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .spreadsheet-container {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 1200px;
+            border: 1px solid rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.7rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            position:relative;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+            table-layout: fixed;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 0.5rem;
+            text-align: left;
+            min-width: 100px;
+            word-wrap: break-word;
+        }
+
+        th {
+            background-color: rgba(152,204,78,0.1);
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            background-color: white;
+            min-height: 1.5em;
+        }
+
+        .paste-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .paste-area {
+            width: 100%;
+            height: 200px;
+            max-height: 300px;
+            padding: 1rem;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            font-family: monospace;
+            overflow-y: auto;
+            resize: vertical;
+            white-space: pre;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .paste-area:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .paste-icon {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .paste-icon:hover {
+            background: var(--secondary);
+        }
+
+        .output-container {
+            position: relative;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--light);
+        }
+
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .copy-tick {
+            position:absolute;
+            right: 0px;
+            top: 0px;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 100%;
+            padding: 4px;
+            color: white;
+            display: none;
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .switch-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-calendar-plus"></i> Expiry Date Calculator</h1>
+        <p>Add expiry dates to your package data automatically</p>
+    </div>
+
+    <div class="spreadsheet-container">
+        <div class="paste-container">
+            <div class="paste-area" id="pasteArea" contenteditable="true" placeholder="Paste your Excel data here (e.g. 03003990031 [95006329]Triple Supreme Plus Zero 2025-04-01)"></div>
+            <div class="paste-icon" onclick="pasteData()">
+                <i class="fas fa-paste"></i> Paste
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="dateFormat">Input Date Format</label>
+                <select id="dateFormat">
+                    <option value="auto" selected>Auto-detect (Recommended)</option>
+                    <option value="dd-mm-yyyy">DD-MM-YYYY (12-04-2025)</option>
+                    <option value="mm-dd-yyyy">MM-DD-YYYY (04-12-2025)</option>
+                    <option value="yyyy-mm-dd">YYYY-MM-DD (2025-04-12)</option>
+                    <option value="dd-mmm-yyyy">DD-MMM-YYYY (12-Apr-2025)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="outputDateFormat">Output Date Format</label>
+                <select id="outputDateFormat">
+                    <option value="dd-mm-yyyy">DD-MM-YYYY (12-04-2025)</option>
+                    <option value="mm-dd-yyyy">MM-DD-YYYY (04-12-2025)</option>
+                    <option value="yyyy-mm-dd">YYYY-MM-DD (2025-04-12)</option>
+                    <option value="dd-mmm-yyyy" selected>DD-MMM-YYYY (12-Apr-2025)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="defaultDuration">Default Duration</label>
+                <select id="defaultDuration">
+                    <option value="30">Monthly (30 days)</option>
+                    <option value="7">Weekly (7 days)</option>
+                    <option value="90">3 Months (90 days)</option>
+                    <option value="180">6 Months (180 days)</option>
+                    <option value="365">12 Months (365 days)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="processData()">
+                <i class="fas fa-magic"></i> Calculate Expiry Dates
+            </button>
+            <button class="btn btn-secondary" onclick="clearData()">
+                <i class="fas fa-trash-alt"></i> Clear All
+            </button>
+            <button class="btn btn-secondary" onclick="copyProcessedData()">
+                <i class="fas fa-copy"></i> Copy Results
+                <span class="copy-tick"><i class="fas fa-check"></i></span>
+            </button>
+            
+            <div class="switch-container">
+                <span class="switch-label">Show Hattrick Only</span>
+                <label class="switch">
+                    <input type="checkbox" id="hattrickOnlySwitch">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="output-container">
+            <div class="output-header">
+                <h3>Results with Expiry Dates</h3>
+            </div>
+            <div id="tableContainer">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Phone Number</th>
+                            <th>Package Info</th>
+                            <th>Remarks</th>
+                            <th>Activation Date</th>
+                            <th>Expiry Date</th>
+                            <th>Duration (days)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+                        <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+                        <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        © Workflow 2025 | Data is processed in your browser only (not saved to server)
+    </footer>
+
+    <script>
+        // Package duration mapping
+        const packageDurations = {
+            'weekly': 7,
+            'monthly': 30,
+            '3 month': 90,
+            '3months': 90,
+            'triple': 90,
+            'hattrick': 90,
+            '6 month': 180,
+            '6months': 180,
+            '12 month': 365,
+            '12months': 365,
+            'yearly': 365,
+            'annual': 365,
+            'supreme': 30,
+            'premium': 30,
+            'pro': 30,
+            'max': 30,
+            'bundle': 30
+        };
+
+        let allResults = []; // Store all results for filtering
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('pasteArea').focus();
+            
+            // Set up Hattrick filter switch
+            document.getElementById('hattrickOnlySwitch').addEventListener('change', function() {
+                if (allResults.length > 0) {
+                    displayResults(this.checked ? 
+                        allResults.filter(r => r.duration === 90) : 
+                        allResults);
+                }
+            });
+        });
+
+        function pasteData() {
+            navigator.clipboard.readText().then(text => {
+                const pasteArea = document.getElementById('pasteArea');
+                // Append to existing content with newline if needed
+                if (pasteArea.textContent && !pasteArea.textContent.endsWith('\n')) {
+                    pasteArea.textContent += '\n' + text;
+                } else {
+                    pasteArea.textContent += text;
+                }
+                // Ensure consistent font size
+                pasteArea.style.fontSize = '14px';
+                pasteArea.style.lineHeight = '1.5';
+            }).catch(err => {
+                console.error('Failed to read clipboard:', err);
+                document.getElementById('pasteArea').focus();
+                alert('Please use Ctrl+V to paste your data into the input box');
+            });
+        }
+
+        function processData() {
+            const inputText = document.getElementById('pasteArea').textContent.trim();
+            if (!inputText) {
+                alert('Please paste your data first');
+                return;
+            }
+
+            const rows = inputText.split(/\r\n|\n|\r/).filter(row => row.trim() !== '');
+            const results = [];
+            const inputDateFormat = document.getElementById('dateFormat').value;
+            const outputDateFormat = document.getElementById('outputDateFormat').value;
+            const defaultDuration = parseInt(document.getElementById('defaultDuration').value);
+
+            // Process each row
+            rows.forEach(row => {
+                // Split by tabs or multiple spaces
+                const columns = row.split(/\t|\s{2,}/).filter(col => col.trim() !== '');
+                
+                if (columns.length < 2) return; // Skip invalid rows
+
+                // Phone number (first column)
+                const phoneNumber = columns[0].trim();
+
+                // Find date column (try last columns first)
+                let dateColIndex = -1;
+                let activationDate = null;
+                
+                // Check from end to beginning for dates
+                for (let i = columns.length - 1; i >= 0; i--) {
+                    const possibleDate = parseDate(columns[i].trim(), inputDateFormat);
+                    if (!isNaN(possibleDate.getTime())) {
+                        activationDate = possibleDate;
+                        dateColIndex = i;
+                        break;
+                    }
+                }
+
+                if (!activationDate) return; // Skip rows without valid dates
+
+                // The remaining columns between phone and date are package info and remarks
+                let packageInfo = '';
+                let remarks = '';
+                
+                if (dateColIndex > 1) {
+                    // We have multiple columns between phone and date
+                    packageInfo = columns.slice(1, dateColIndex).join(' ').trim();
+                    
+                    // Try to separate remarks if they exist
+                    const lastInfoPart = columns[dateColIndex - 1].trim();
+                    if (!/\d/.test(lastInfoPart)) { // If doesn't contain numbers, treat as remarks
+                        remarks = lastInfoPart;
+                        packageInfo = columns.slice(1, dateColIndex - 1).join(' ').trim();
+                    }
+                } else {
+                    // Only one column between phone and date
+                    packageInfo = columns[1].trim();
+                }
+
+                // Determine package duration
+                const duration = detectPackageDuration(packageInfo) || defaultDuration;
+
+                // Calculate expiry date
+                const expiryDate = new Date(activationDate);
+                expiryDate.setDate(expiryDate.getDate() + duration);
+
+                // Format dates
+                const formattedActivation = formatDate(activationDate, outputDateFormat);
+                const formattedExpiry = formatDate(expiryDate, outputDateFormat);
+
+                results.push({
+                    phone: phoneNumber,
+                    package: packageInfo,
+                    remarks: remarks,
+                    activation: formattedActivation,
+                    expiry: formattedExpiry,
+                    duration: duration,
+                    originalRow: row
+                });
+            });
+
+            allResults = results;
+            displayResults(results);
+        }
+
+        function detectPackageDuration(text) {
+            const lowerText = text.toLowerCase();
+            
+            // First check for weekly packages
+            if (lowerText.includes('weekly')) {
+                return 7;
+            }
+            
+            // Then check for 3/6/12 month packages
+            if (lowerText.includes('3 month') || lowerText.includes('3months') || 
+                lowerText.includes('triple') || lowerText.includes('hattrick')) {
+                return 90;
+            }
+            if (lowerText.includes('6 month') || lowerText.includes('6months')) {
+                return 180;
+            }
+            if (lowerText.includes('12 month') || lowerText.includes('12months') || 
+                lowerText.includes('yearly') || lowerText.includes('annual')) {
+                return 365;
+            }
+            
+            // Default to monthly
+            return 30;
+        }
+
+        function parseDate(dateStr, format = 'auto') {
+            if (!dateStr || dateStr.trim() === '') return new Date(NaN);
+
+            // Try standard parsing first
+            if (format !== 'auto') {
+                const formattedDate = parseFormattedDate(dateStr, format);
+                if (!isNaN(formattedDate.getTime())) return formattedDate;
+            }
+
+            // Auto-detect format
+            const formatsToTry = [
+                'yyyy-mm-dd', 'dd-mm-yyyy', 'mm-dd-yyyy', 'dd-mmm-yyyy',
+                'yyyy/mm/dd', 'dd/mm/yyyy', 'mm/dd/yyyy', 'dd/mmm/yyyy',
+                'yyyy.mm.dd', 'dd.mm.yyyy', 'mm.dd.yyyy', 'dd.mmm.yyyy'
+            ];
+
+            for (const fmt of formatsToTry) {
+                const date = parseFormattedDate(dateStr, fmt);
+                if (!isNaN(date.getTime())) return date;
+            }
+
+            return new Date(NaN);
+        }
+
+        function parseFormattedDate(dateStr, format) {
+            const monthNames = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+            
+            // Handle month names
+            if (format.includes('mmm')) {
+                const monthMatch = dateStr.match(/[A-Za-z]{3}/i);
+                if (monthMatch) {
+                    const monthName = monthMatch[0].toLowerCase();
+                    const monthIndex = monthNames.indexOf(monthName);
+                    if (monthIndex !== -1) {
+                        dateStr = dateStr.replace(monthName, (monthIndex + 1).toString().padStart(2, '0'));
+                        format = format.replace('mmm', 'mm');
+                    }
+                }
+            }
+
+            // Extract components based on format
+            const formatParts = format.split(/[-/.]/);
+            const dateParts = dateStr.split(/[-/.]/);
+            
+            if (formatParts.length !== dateParts.length) return new Date(NaN);
+            
+            let year, month, day;
+            
+            for (let i = 0; i < formatParts.length; i++) {
+                const part = formatParts[i];
+                const value = dateParts[i];
+                
+                if (part.includes('yyyy')) {
+                    year = parseInt(value);
+                } else if (part.includes('mm')) {
+                    month = parseInt(value);
+                } else if (part.includes('dd')) {
+                    day = parseInt(value);
+                }
+            }
+            
+            // Handle 2-digit years
+            if (year < 100) {
+                year = 2000 + year;
+            }
+            
+            // Validate components
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return new Date(NaN);
+            if (month < 1 || month > 12) return new Date(NaN);
+            if (day < 1 || day > 31) return new Date(NaN);
+            
+            return new Date(year, month - 1, day);
+        }
+
+        function formatDate(date, format) {
+            if (isNaN(date.getTime())) return 'Invalid Date';
+
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            switch (format) {
+                case 'dd-mm-yyyy':
+                    return `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`;
+                case 'mm-dd-yyyy':
+                    return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}-${year}`;
+                case 'yyyy-mm-dd':
+                    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                case 'dd-mmm-yyyy':
+                    return `${String(day).padStart(2, '0')}-${monthNames[date.getMonth()]}-${year}`;
+                default:
+                    return date.toLocaleDateString();
+            }
+        }
+
+        function displayResults(results) {
+            const tbody = document.querySelector('#dataTable tbody');
+            tbody.innerHTML = '';
+
+            if (results.length === 0) {
+                // Add empty rows if no results
+                for (let i = 0; i < 3; i++) {
+                    const row = document.createElement('tr');
+                    for (let j = 0; j < 6; j++) {
+                        const td = document.createElement('td');
+                        td.innerHTML = '&nbsp;';
+                        row.appendChild(td);
+                    }
+                    tbody.appendChild(row);
+                }
+                return;
+            }
+
+            // Add result rows
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                
+                const cells = [
+                    result.phone,
+                    result.package,
+                    result.remarks,
+                    result.activation,
+                    result.expiry,
+                    result.duration
+                ];
+                
+                cells.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    row.appendChild(td);
+                });
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function copyProcessedData() {
+            const table = document.getElementById('dataTable');
+            let text = '';
+            
+            // Add headers
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
+            text += headers.join('\t') + '\n';
+            
+            // Add rows
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent.trim());
+                if (cells[0] && cells[0] !== '&nbsp;' && cells[0] !== '') {
+                    text += cells.join('\t') + '\n';
+                }
+            });
+
+            if (!text.trim()) {
+                alert('No data to copy. Please process some data first.');
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                const tick = document.querySelector('.copy-tick');
+                tick.style.display = 'inline-block';
+                setTimeout(()=> {
+                    tick.style.display = 'none';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy table. Please try again.');
+            });
+        }
+
+        function clearData() {
+            if (confirm('Are you sure you want to clear all data?')) {
+                document.getElementById('pasteArea').textContent = '';
+                const tbody = document.querySelector('#dataTable tbody');
+                tbody.innerHTML = '';
+                allResults = [];
+                
+                // Add empty rows
+                for (let i = 0; i < 3; i++) {
+                    const row = document.createElement('tr');
+                    for (let j = 0; j < 6; j++) {
+                        const td = document.createElement('td');
+                        td.innerHTML = '&nbsp;';
+                        row.appendChild(td);
+                    }
+                    tbody.appendChild(row);
+                }
+            }
+        }
+
+        document.getElementById('pasteArea').addEventListener('paste', function(e) {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            
+            // Get current cursor position
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+            
+            // If there's selected text, replace it
+            if (!selection.isCollapsed) {
+                range.deleteContents();
+            }
+            
+            // Insert the pasted text
+            range.insertNode(document.createTextNode(text));
+            
+            // Move cursor to end of pasted text
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // Ensure consistent font size
+            this.style.fontSize = '14px';
+            this.style.lineHeight = '1.5';
+        });
+    </script>
+</body>
+</html>
