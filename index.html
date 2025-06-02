@@ -341,11 +341,11 @@
             <div class="control-group">
                 <label for="defaultDuration">Default Duration</label>
                 <select id="defaultDuration">
-                    <option value="30">Monthly (30 days)</option>
-                    <option value="7">Weekly (7 days)</option>
-                    <option value="90">3 Months (90 days)</option>
-                    <option value="180">6 Months (180 days)</option>
-                    <option value="365">12 Months (365 days)</option>
+                    <option value="29">Monthly (30 days)</option>
+                    <option value="6">Weekly (7 days)</option>
+                    <option value="89">3 Months (90 days)</option>
+                    <option value="179">6 Months (180 days)</option>
+                    <option value="364">12 Months (365 days)</option>
                 </select>
             </div>
         </div>
@@ -402,25 +402,25 @@
     </footer>
 
     <script>
-        // Package duration mapping
+        // Package duration mapping - updated to match accurate calculations
         const packageDurations = {
-            'weekly': 7,
-            'monthly': 30,
-            '3 month': 90,
-            '3months': 90,
-            'triple': 90,
-            'hattrick': 90,
-            '6 month': 180,
-            '6months': 180,
-            '12 month': 365,
-            '12months': 365,
-            'yearly': 365,
-            'annual': 365,
-            'supreme': 30,
-            'premium': 30,
-            'pro': 30,
-            'max': 30,
-            'bundle': 30
+            'weekly': 6,       // 7 days (6 days + activation day)
+            'monthly': 29,      // 30 days (29 days + activation day)
+            '3 month': 89,      // 90 days (89 days + activation day)
+            '3months': 89,
+            'triple': 89,
+            'hattrick': 89,
+            '6 month': 179,     // 180 days (179 days + activation day)
+            '6months': 179,
+            '12 month': 364,     // 365 days (364 days + activation day)
+            '12months': 364,
+            'yearly': 364,
+            'annual': 364,
+            'supreme': 29,
+            'premium': 29,
+            'pro': 29,
+            'max': 29,
+            'bundle': 29
         };
 
         let allResults = []; // Store all results for filtering
@@ -432,7 +432,7 @@
             document.getElementById('hattrickOnlySwitch').addEventListener('change', function() {
                 if (allResults.length > 0) {
                     displayResults(this.checked ? 
-                        allResults.filter(r => r.duration === 90) : 
+                        allResults.filter(r => r.duration === 89) : 
                         allResults);
                 }
             });
@@ -515,16 +515,19 @@
                     packageInfo = columns[1].trim();
                 }
 
-                // Determine package duration
+                // Determine package duration (using accurate calculations)
                 const duration = detectPackageDuration(packageInfo) || defaultDuration;
 
-                // Calculate expiry date
+                // Calculate expiry date (activation date + duration days)
                 const expiryDate = new Date(activationDate);
                 expiryDate.setDate(expiryDate.getDate() + duration);
 
                 // Format dates
                 const formattedActivation = formatDate(activationDate, outputDateFormat);
                 const formattedExpiry = formatDate(expiryDate, outputDateFormat);
+
+                // Calculate display duration (actual days shown to user)
+                const displayDuration = duration + 1; // Show the total days including activation day
 
                 results.push({
                     phone: phoneNumber,
@@ -533,6 +536,7 @@
                     activation: formattedActivation,
                     expiry: formattedExpiry,
                     duration: duration,
+                    displayDuration: displayDuration,
                     originalRow: row
                 });
             });
@@ -544,26 +548,26 @@
         function detectPackageDuration(text) {
             const lowerText = text.toLowerCase();
             
-            // First check for weekly packages
+            // First check for weekly packages (6 days + activation day = 7 total)
             if (lowerText.includes('weekly')) {
-                return 7;
+                return 6;
             }
             
             // Then check for 3/6/12 month packages
             if (lowerText.includes('3 month') || lowerText.includes('3months') || 
                 lowerText.includes('triple') || lowerText.includes('hattrick')) {
-                return 90;
+                return 89; // 89 + 1 = 90 days
             }
             if (lowerText.includes('6 month') || lowerText.includes('6months')) {
-                return 180;
+                return 179; // 179 + 1 = 180 days
             }
             if (lowerText.includes('12 month') || lowerText.includes('12months') || 
                 lowerText.includes('yearly') || lowerText.includes('annual')) {
-                return 365;
+                return 364; // 364 + 1 = 365 days
             }
             
-            // Default to monthly
-            return 30;
+            // Default to monthly (29 + 1 = 30 days)
+            return 29;
         }
 
         function parseDate(dateStr, format = 'auto') {
@@ -690,7 +694,7 @@
                     result.remarks,
                     result.activation,
                     result.expiry,
-                    result.duration
+                    result.displayDuration // Show the total days including activation day
                 ];
                 
                 cells.forEach(cell => {
